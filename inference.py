@@ -60,8 +60,35 @@ def constructBayesNet(gameState: hunters.GameState):
     edges = []
     variableDomainsDict = {}
 
+
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    variables = [PAC, GHOST0, GHOST1, OBS0, OBS1]
+    edges = [(PAC, OBS0), (GHOST0, OBS0), (PAC, OBS1), (GHOST1, OBS1)]
+    #variable domains for pac, ghost0, ghost1
+    variableDomainsDict[PAC] = [(x, y) for x in range(X_RANGE) for y in range(Y_RANGE)]
+    variableDomainsDict[GHOST0] = [(x, y) for x in range(X_RANGE) for y in range(Y_RANGE)]
+    variableDomainsDict[GHOST1] = [(x, y) for x in range(X_RANGE) for y in range(Y_RANGE)]
+
+    # true distances between pacman and ghost0 (possible_dist), pacman and ghost1 (possible_dist1)
+    possible_dist = [abs(pac_location[0] - ghost_location[0]) + abs(pac_location[1] - ghost_location[1]) for pac_location in variableDomainsDict[PAC] for ghost_location in variableDomainsDict[GHOST0]]
+    possible_dist1 = [abs(pac_location[0] - ghost_location[0]) + abs(pac_location[1] - ghost_location[1]) for pac_location in variableDomainsDict[PAC] for ghost_location in variableDomainsDict[GHOST1]]
+    
+    # add noise to true distances
+    obs0_set = set()
+    for dist in possible_dist: # iterate through all the true distances
+        for noise in range(-MAX_NOISE, MAX_NOISE + 1): # add noise in the range as long as manhattan distance is non-negative
+            noisy_dist = dist + noise
+            if noisy_dist >= 0:
+                obs0_set.add(noisy_dist)
+    variableDomainsDict[OBS0] = list(obs0_set)
+    
+    obs1_set = set()
+    for dist in possible_dist1:
+        for noise in range(-MAX_NOISE, MAX_NOISE + 1):
+            noisy_dist = dist + noise
+            if noisy_dist >= 0:
+                obs1_set.add(noisy_dist)
+    variableDomainsDict[OBS1] = list(obs1_set)
     "*** END YOUR CODE HERE ***"
 
     net = bn.constructEmptyBayesNet(variables, edges, variableDomainsDict)
