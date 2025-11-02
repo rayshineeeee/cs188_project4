@@ -181,11 +181,10 @@ def eliminateWithCallTracking(callTrackingList=None):
 
         for assignment in newFactor.getAllPossibleAssignmentDicts():
             total = 0
-            assignmentDict = dict(assignment)
             for val in var_domain[eliminationVariable]:
                 #assignmentDict(variable: variable Value)
-                assignmentDict[eliminationVariable] = val
-                total += factor.getProbability(assignmentDict)
+                assignment[eliminationVariable] = val
+                total += factor.getProbability(assignment)
             newFactor.setProbability(assignment, total)
 
         return newFactor
