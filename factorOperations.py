@@ -87,7 +87,9 @@ def joinFactors(factors: List[Factor]):
     Factor.conditionedVariables
     Factor.variableDomainsDict
     """
-
+    factors = list(factors)
+    if not factors:
+        raise ValueError("joinFactors needs at least one factor")
     # typecheck portion
     setsOfUnconditioned = [set(factor.unconditionedVariables()) for factor in factors]
     if len(factors) > 1:
@@ -102,8 +104,25 @@ def joinFactors(factors: List[Factor]):
 
 
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
-    "*** END YOUR CODE HERE ***"
+
+    all_uncond = set()
+    all_cond = set()
+
+    for f in factors:
+        all_uncond |= set(f.unconditionedVariables())
+        all_cond |= set(f.conditionedVariables())
+    all_cond  -= all_uncond
+
+
+    result = Factor(all_uncond, all_cond, factors[0].variableDomainsDict())
+
+    for assignment in result.getAllPossibleAssignmentDicts():
+        prod = 1.0
+        for f in factors:
+            prod *= f.getProbability(assignment)
+        result.setProbability(assignment, prod)
+    return result
+
 
 ########### ########### ###########
 ########### QUESTION 3  ###########
