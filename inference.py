@@ -12,6 +12,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+from ctypes import util
 import random
 import itertools
 from typing import List, Dict, Tuple
@@ -457,7 +458,7 @@ class InferenceModule:
         if agent == None:
             agent = self.ghostAgent
         return self.getPositionDistributionHelper(gameState, pos, index, agent)
-    
+        
     ########### ########### ###########
     ########### QUESTION 5b ###########
     ########### ########### ###########
@@ -594,7 +595,21 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        pacman_pos = gameState.getPacmanPosition()
+        jail_pos = self.getJailPosition()
+        new_beliefs = DiscreteDistribution()
+
+
+        all_pos = self.allPositions
+        for pos in all_pos:
+            likelihood = self.getObservationProb(observation, pacman_pos, pos, jail_pos)
+            prior = self.beliefs[pos]
+            newBelief = likelihood * prior
+            new_beliefs[pos] = newBelief
+        self.beliefs = new_beliefs
+
+
+
         "*** END YOUR CODE HERE ***"
         self.beliefs.normalize()
     
@@ -612,7 +627,22 @@ class ExactInference(InferenceModule):
         current position is known.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        new_beliefs = DiscreteDistribution()
+
+        # iterate each possible previous pos of the ghost
+        for old_pos in self.allPositions:
+            old_prob = self.beliefs[old_pos]
+            if old_prob == 0:
+                continue
+            # get distribution over possible new positions given old_pos
+            new_pos_dist = self.getPositionDistribution(gameState, old_pos)
+
+            # sum from all possible transitions
+            for new_pos, transition_prob in new_pos_dist.items():
+                new_beliefs[new_pos] += transition_prob * old_prob
+
+        new_beliefs.normalize()
+        self.beliefs = new_beliefs
         "*** END YOUR CODE HERE ***"
 
     def getBeliefDistribution(self):
