@@ -674,7 +674,11 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+
+        n = len(self.legalPositions)
+        for i in range(self.numParticles):
+            self.particles.append(self.legalPositions[i % n]) #make sure doesn't overflow
+
         "*** END YOUR CODE HERE ***"
 
     def getBeliefDistribution(self):
@@ -686,7 +690,11 @@ class ParticleFilter(InferenceModule):
         This function should return a normalized distribution.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        dist = DiscreteDistribution()
+        for p in self.particles:
+            dist[p] += 1
+        dist.normalize()
+        return dist
         "*** END YOUR CODE HERE ***"
     
     ########### ########### ###########
@@ -706,7 +714,25 @@ class ParticleFilter(InferenceModule):
         the DiscreteDistribution may be useful.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        pac = gameState.getPacmanPosition()
+        jail = self.getJailPosition()
+
+        #find weights by observation
+        weights = DiscreteDistribution()
+        for pos in self.particles:
+            w = self.getObservationProb(observation, pac, pos, jail)
+            weights[pos] += w
+        
+        weights.normalize()
+        #0 case
+        if weights.total() == 0:
+            self.initializeUniformly(gameState)
+            return
+
+        #discrete step
+        for i in range(self.numParticles):
+            self.particles[i] = weights.sample()
+
         "*** END YOUR CODE HERE ***"
     
     ########### ########### ###########
@@ -719,5 +745,9 @@ class ParticleFilter(InferenceModule):
         gameState.
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        new_Particles = []
+        for oldPos in self.particles:
+            newPosDist = self.getPositionDistribution(gameState, oldPos)
+            new_Particles.append(newPosDist.sample())
+        self.particles = new_Particles
         "*** END YOUR CODE HERE ***"
